@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <AssetsLibrary/AssetsLibrary.h>
 
 @interface ELCImagePickerController : UINavigationController {
 
@@ -15,14 +16,14 @@
 
 @property (nonatomic, assign) id delegate;
 
--(void)selectedAssets:(NSArray*)_assets;
+-(void)selectedAsset:(ALAsset*)asset;
 -(void)cancelImagePicker;
 
 @end
 
 @protocol ELCImagePickerControllerDelegate
 
-- (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info;
+- (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info;
 - (void)elcImagePickerControllerDidCancel:(ELCImagePickerController *)picker;
 
 @end

@@ -55,26 +55,26 @@
      }];    
     NSLog(@"done enumerating photos");
 	
-	[self.tableView reloadData];
-	[self.navigationItem setTitle:@"Pick Photos"];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // ensure the table's controller wasn't destructed
+        if (self.tableView && self.tableView.superview) {
+            [self.tableView reloadData];
+            [self.navigationItem setTitle:[self.assetGroup valueForProperty:ALAssetsGroupPropertyName]];
+        }
+    });
     
     [pool release];
-
 }
 
 - (void) doneAction:(id)sender {
 	
-	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
-	    
-	for(ELCAsset *elcAsset in self.elcAssets) 
-    {		
-		if([elcAsset selected]) {
-			
-			[selectedAssetsImages addObject:[elcAsset asset]];
-		}
-	}
-        
-    [(ELCAlbumPickerController*)self.parent selectedAssets:selectedAssetsImages];
+    ALAsset *selectedAsset = nil;
+    
+    if ([sender isKindOfClass:[ALAsset class]]) {
+        selectedAsset = (ALAsset *)sender;
+    }
+    
+    [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset];
 }
 
 #pragma mark UITableViewDataSource Delegate Methods
@@ -150,21 +150,6 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
 	return 79;
-}
-
-- (int)totalSelectedAssets {
-    
-    int count = 0;
-    
-    for(ELCAsset *asset in self.elcAssets) 
-    {
-		if([asset selected]) 
-        {            
-            count++;	
-		}
-	}
-    
-    return count;
 }
 
 - (void)dealloc 

@@ -25,7 +25,6 @@
 @property (nonatomic, retain) NSMutableArray *elcAssets;
 @property (nonatomic, retain) IBOutlet UILabel *selectedAssetsLabel;
 
--(int)totalSelectedAssets;
 -(void)preparePhotos;
 
 -(void)doneAction:(id)sender;

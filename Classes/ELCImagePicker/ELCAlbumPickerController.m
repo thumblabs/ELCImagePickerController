@@ -21,7 +21,9 @@
 	
 	[self.navigationItem setTitle:@"Loading..."];
 
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self.parent action:@selector(cancelImagePicker)];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                  target:self.parent
+                                                                                  action:@selector(cancelImagePicker)];
 	[self.navigationItem setRightBarButtonItem:cancelButton];
 	[cancelButton release];
 
@@ -46,22 +48,29 @@
             
             [self.assetGroups addObject:group];
 
-            // Reload albums
-            [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                // Reload albums
+                [self reloadTableView];
+            });
         };
         
         // Group Enumerator Failure Block
         void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
-            
-            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-            
-            NSLog(@"A problem occured %@", [error description]);	                                 
-        };	
+            dispatch_async(dispatch_get_main_queue(), ^{
                 
+                UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                [alert show];
+                [alert release];
+                
+                NSLog(@"A problem occured %@", [error description]);
+                
+                cancelButton.enabled = YES;
+            });
+        };	
+        
         // Enumerate Albums
-        [library enumerateGroupsWithTypes:ALAssetsGroupAll
+        [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
                                usingBlock:assetGroupEnumerator 
                              failureBlock:assetGroupEnumberatorFailure];
         
@@ -70,14 +79,16 @@
 }
 
 -(void)reloadTableView {
-	
-	[self.tableView reloadData];
-	[self.navigationItem setTitle:@"Select an Album"];
+	// ensure that the tableView's controller wasn't deallocated
+    if (self.tableView && self.tableView.superview) {
+        
+        [self.tableView reloadData];
+        [self.navigationItem setTitle:@"Photos"];
+    }
 }
 
--(void)selectedAssets:(NSArray*)_assets {
-	
-	[(ELCImagePickerController*)parent selectedAssets:_assets];
+-(void)selectedAsset:(ALAsset*)asset {
+	[(ELCImagePickerController*)parent selectedAsset:asset];
 }
 
 #pragma mark -
@@ -107,7 +118,7 @@
     
     // Get count
     ALAssetsGroup *g = (ALAssetsGroup*)[assetGroups objectAtIndex:indexPath.row];
-    [g setAssetsFilter:[ALAssetsFilter allPhotos]];
+    [g setAssetsFilter:[ALAssetsFilter allAssets]];
     NSInteger gCount = [g numberOfAssets];
     
     cell.textLabel.text = [NSString stringWithFormat:@"%@ (%d)",[g valueForProperty:ALAssetsGroupPropertyName], gCount];
@@ -121,13 +132,17 @@
 #pragma mark Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	
+    
+    if (self.navigationController.topViewController != self) {
+        return;
+    }
+    
 	ELCAssetTablePicker *picker = [[ELCAssetTablePicker alloc] initWithNibName:@"ELCAssetTablePicker" bundle:[NSBundle mainBundle]];
 	picker.parent = self;
 
     // Move me    
     picker.assetGroup = [assetGroups objectAtIndex:indexPath.row];
-    [picker.assetGroup setAssetsFilter:[ALAssetsFilter allPhotos]];
+    [picker.assetGroup setAssetsFilter:[ALAssetsFilter allAssets]];
     
 	[self.navigationController pushViewController:picker animated:YES];
 	[picker release];

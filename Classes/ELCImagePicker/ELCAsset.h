@@ -9,17 +9,11 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 
 
-@interface ELCAsset : UIView {
-	ALAsset *asset;
-	UIImageView *overlayView;
-	BOOL selected;
-	id parent;
-}
+@interface ELCAsset : UIView
 
 @property (nonatomic, retain) ALAsset *asset;
 @property (nonatomic, assign) id parent;
 
 -(id)initWithAsset:(ALAsset*)_asset;
--(BOOL)selected;
 
 @end

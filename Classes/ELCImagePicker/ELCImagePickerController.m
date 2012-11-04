@@ -22,33 +22,29 @@
 	}
 }
 
--(void)selectedAssets:(NSArray*)_assets {
+-(void)selectedAsset:(ALAsset*)asset {
 
-	NSMutableArray *returnArray = [[[NSMutableArray alloc] init] autorelease];
+    if (!asset) {
+        [[self delegate] dismissModalViewControllerAnimated:YES];
+        return;
+    }
 	
-	for(ALAsset *asset in _assets) {
-
-		NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
-		[workingDictionary setObject:[asset valueForProperty:ALAssetPropertyType] forKey:@"UIImagePickerControllerMediaType"];
-        ALAssetRepresentation *assetRep = [asset defaultRepresentation];
-        CGImageRef imgRef = [assetRep fullScreenImage];
-        UIImage *img = [UIImage imageWithCGImage:imgRef
-                                           scale:assetRep.scale
-                                     orientation:(UIImageOrientation)assetRep.orientation];
-        [workingDictionary setObject:img forKey:@"UIImagePickerControllerOriginalImage"];
-		[workingDictionary setObject:[[asset valueForProperty:ALAssetPropertyURLs] valueForKey:[[[asset valueForProperty:ALAssetPropertyURLs] allKeys] objectAtIndex:0]] forKey:@"UIImagePickerControllerReferenceURL"];
-		
-		[returnArray addObject:workingDictionary];
-		
-		[workingDictionary release];	
-	}
-	
-    [self popToRootViewControllerAnimated:NO];
-    [[self parentViewController] dismissModalViewControllerAnimated:YES];
+    NSString *type = [asset valueForProperty:ALAssetPropertyType];
+    
+    NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
+    [workingDictionary setObject:type forKey:@"UIImagePickerControllerMediaType"];
+    ALAssetRepresentation *assetRep = [asset defaultRepresentation];
+    CGImageRef imgRef = [assetRep fullScreenImage];
+    UIImage *img = [UIImage imageWithCGImage:imgRef];
+    [workingDictionary setObject:img forKey:@"UIImagePickerControllerOriginalImage"];
+    [workingDictionary setObject:[[asset defaultRepresentation] url]
+                          forKey:@"UIImagePickerControllerReferenceURL"];
     
 	if([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
-		[delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:[NSArray arrayWithArray:returnArray]];
+		[delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:workingDictionary];
 	}
+    
+    [workingDictionary release];
 }
 
 #pragma mark -
