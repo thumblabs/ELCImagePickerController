@@ -12,6 +12,9 @@
 
 
 @implementation ELCAssetTablePicker
+{
+    NSInteger start;
+}
 
 @synthesize parent;
 @synthesize selectedAssetsLabel;
@@ -30,10 +33,39 @@
 	[self.navigationItem setRightBarButtonItem:doneButtonItem];
 	[self.navigationItem setTitle:@"Loading..."];
 
+    NSInteger count = self.assetGroup.numberOfAssets;
+    NSInteger startNumberOfAssets = 96 + count%4;
+    start = MAX(0, count-startNumberOfAssets);
+    
+    // Set up the first ~100 photos
+    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(start, count > startNumberOfAssets ? startNumberOfAssets : count)];
+    for (int i = 0; i < start; i++){
+        [self.elcAssets addObject:[NSNull null]];
+    }
+    [self.assetGroup enumerateAssetsAtIndexes:indexSet options:0 usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+        if(result == nil)
+        {
+            return;
+        }
+        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+        [elcAsset setParent:self];
+        [self.elcAssets addObject:elcAsset];
+    }];
+    [self.tableView reloadData];
+    NSInteger row = ceil(assetGroup.numberOfAssets / 4.0)-1;
+    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]
+                          atScrollPosition:UITableViewScrollPositionBottom
+                                  animated:NO];
+    
+    // For some reason it only scrolls about 80% through the final image... This scrolls
+    // the table view all the way to the bottom. 50 is just a number thats bigger than the
+    // sliver of the image thats covered up.
+    [self.tableView setContentOffset:CGPointMake(0, self.tableView.contentOffset.y+50)];
+    
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
     
     // Show partial while full list loads
-	[self.tableView performSelector:@selector(reloadData) withObject:nil afterDelay:.5];
+	//[self.tableView performSelector:@selector(reloadData) withObject:nil afterDelay:.5];
 }
 
 -(void)preparePhotos {
@@ -42,26 +74,22 @@
 
 	
     NSLog(@"enumerating photos");
-    [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) 
-     {         
-         if(result == nil) 
-         {
-             return;
-         }
-         
-         ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
-         [elcAsset setParent:self];
-         [self.elcAssets addObject:elcAsset];
-     }];    
-    NSLog(@"done enumerating photos");
-	
-    dispatch_async(dispatch_get_main_queue(), ^{
-        // ensure the table's controller wasn't destructed
-        if (self.tableView && self.tableView.superview) {
-            [self.tableView reloadData];
-            [self.navigationItem setTitle:[self.assetGroup valueForProperty:ALAssetsGroupPropertyName]];
+    NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
+    [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result,
+                                                                                 NSUInteger index,
+                                                                                 BOOL *stop) {
+        if(result == nil)
+        {
+            return;
         }
-    });
+        ELCAsset *elcAsset = [[[ELCAsset alloc] initWithAsset:result] autorelease];
+        [elcAsset setParent:self];
+        [self.elcAssets replaceObjectAtIndex:index withObject:elcAsset];
+    }];
+    NSLog(@"done enumerating photos");
+    
+    [self.tableView reloadData];
+    [self.navigationItem setTitle:[self.assetGroup valueForProperty:ALAssetsGroupPropertyName]];
     
     [pool release];
 }
@@ -86,7 +114,7 @@
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return ceil([self.assetGroup numberOfAssets] / 4.0);
+    return ceil(assetGroup.numberOfAssets / 4.0);
 }
 
 - (NSArray*)assetsForIndexPath:(NSIndexPath*)_indexPath {
@@ -134,14 +162,17 @@
     static NSString *CellIdentifier = @"Cell";
         
     ELCAssetCell *cell = (ELCAssetCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-
+    
+    NSMutableArray *assets = [[self assetsForIndexPath:indexPath] mutableCopy];
+    [assets removeObjectIdenticalTo:[NSNull null]];
+    
     if (cell == nil) 
     {		        
-        cell = [[[ELCAssetCell alloc] initWithAssets:[self assetsForIndexPath:indexPath] reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[[ELCAssetCell alloc] initWithAssets:assets reuseIdentifier:CellIdentifier] autorelease];
     }	
 	else 
     {		
-		[cell setAssets:[self assetsForIndexPath:indexPath]];
+		[cell setAssets:assets];
 	}
     
     return cell;
