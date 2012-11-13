@@ -55,7 +55,7 @@
             videoTime.frame = CGRectMake(0, 55, 75, 20);
             videoTime.textColor = [UIColor whiteColor];
             videoTime.font = [UIFont boldSystemFontOfSize:12];
-            videoTime.textAlignment = UITextAlignmentRight;
+            videoTime.textAlignment = NSTextAlignmentRight;
             videoTime.adjustsFontSizeToFitWidth = YES;
             videoTime.text = timeString;
             videoTime.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5];
