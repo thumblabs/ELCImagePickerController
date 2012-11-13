@@ -16,7 +16,7 @@
 
 @property (nonatomic, assign) id delegate;
 
--(void)selectedAsset:(ALAsset*)asset;
+-(void)selectedAsset:(ALAsset*)asset elcAssets:(NSArray *)elcAssets;
 -(void)cancelImagePicker;
 
 @end

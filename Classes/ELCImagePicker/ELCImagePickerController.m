@@ -22,26 +22,28 @@
 	}
 }
 
--(void)selectedAsset:(ALAsset*)asset {
+-(void)selectedAsset:(ALAsset*)asset elcAssets:(NSArray *)elcAssets {
 
     if (!asset) {
         [[self delegate] dismissModalViewControllerAnimated:YES];
         return;
     }
-	
-    NSString *type = [asset valueForProperty:ALAssetPropertyType];
+    
+    NSMutableArray *assets = [[NSMutableArray alloc] initWithCapacity:[elcAssets count]];
+    
+    for (ELCAsset *elcAsset in elcAssets) {
+        [assets addObject:elcAsset.asset];
+    }
     
     NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
-    [workingDictionary setObject:type forKey:@"UIImagePickerControllerMediaType"];
-    ALAssetRepresentation *assetRep = [asset defaultRepresentation];
-    CGImageRef imgRef = [assetRep fullScreenImage];
-    UIImage *img = [UIImage imageWithCGImage:imgRef];
-    [workingDictionary setObject:img forKey:@"UIImagePickerControllerOriginalImage"];
-    [workingDictionary setObject:[[asset defaultRepresentation] url]
-                          forKey:@"UIImagePickerControllerReferenceURL"];
+    [workingDictionary setObject:asset forKey:@"ELCImagePickerControllerAsset"];
+    [workingDictionary setObject:assets forKey:@"ELCImagePickerControllerAssets"];
+    
     
 	if([delegate respondsToSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)]) {
-		[delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:) withObject:self withObject:workingDictionary];
+		[delegate performSelector:@selector(elcImagePickerController:didFinishPickingMediaWithInfo:)
+                       withObject:self
+                       withObject:workingDictionary];
 	}
     
     [workingDictionary release];

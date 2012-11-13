@@ -102,7 +102,7 @@
         selectedAsset = (ALAsset *)sender;
     }
     
-    [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset];
+    [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset elcAssets:self.elcAssets];
 }
 
 #pragma mark UITableViewDataSource Delegate Methods

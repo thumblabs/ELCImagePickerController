@@ -87,8 +87,8 @@
     }
 }
 
--(void)selectedAsset:(ALAsset*)asset {
-	[(ELCImagePickerController*)parent selectedAsset:asset];
+-(void)selectedAsset:(ALAsset*)asset elcAssets:(NSArray *)elcAssets {
+	[(ELCImagePickerController*)parent selectedAsset:asset elcAssets:elcAssets];
 }
 
 #pragma mark -

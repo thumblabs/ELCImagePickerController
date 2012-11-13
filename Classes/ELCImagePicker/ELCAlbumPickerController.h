@@ -20,7 +20,7 @@
 @property (nonatomic, assign) id parent;
 @property (nonatomic, retain) NSMutableArray *assetGroups;
 
--(void)selectedAsset:(ALAsset*)asset;
+-(void)selectedAsset:(ALAsset*)asset elcAssets:(NSArray *)elcAssets;
 
 @end
 
