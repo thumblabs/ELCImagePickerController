@@ -32,7 +32,9 @@
     NSMutableArray *assets = [[NSMutableArray alloc] initWithCapacity:[elcAssets count]];
     
     for (ELCAsset *elcAsset in elcAssets) {
-        [assets addObject:elcAsset.asset];
+        if ([elcAsset isKindOfClass:[ELCAsset class]]) {
+            [assets addObject:elcAsset.asset];
+        }
     }
     
     NSMutableDictionary *workingDictionary = [[NSMutableDictionary alloc] init];
