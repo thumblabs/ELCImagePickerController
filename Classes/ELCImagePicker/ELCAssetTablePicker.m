@@ -14,6 +14,7 @@
 @implementation ELCAssetTablePicker
 {
     NSInteger start;
+    BOOL backgroundInterrupted;
 }
 
 @synthesize parent;
@@ -73,9 +74,10 @@
 
 -(void)preparePhotos {
     
+    backgroundInterrupted = NO;
+    
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	
     NSLog(@"enumerating photos");
     NSIndexSet *newIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, start)];
     [self.assetGroup enumerateAssetsAtIndexes:newIndexSet options:0 usingBlock:^(ALAsset *result,
@@ -91,8 +93,12 @@
     }];
     NSLog(@"done enumerating photos");
     
-    [self.tableView reloadData];
-    [self.navigationItem setTitle:[self.assetGroup valueForProperty:ALAssetsGroupPropertyName]];
+    if (!backgroundInterrupted) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+            [self.navigationItem setTitle:[self.assetGroup valueForProperty:ALAssetsGroupPropertyName]];
+        });
+    }
     
     [pool release];
 }
@@ -106,6 +112,10 @@
     }
     
     [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset elcAssets:self.elcAssets];
+    
+    backgroundInterrupted = YES;
+    
+    [self.navigationController dismissModalViewControllerAnimated:YES];
 }
 
 #pragma mark UITableViewDataSource Delegate Methods
@@ -189,8 +199,12 @@
 - (void)dealloc 
 {
     [elcAssets release];
+    elcAssets = nil;
+    
     [selectedAssetsLabel release];
-    [super dealloc];    
+    selectedAssetsLabel = nil;
+    
+    [super dealloc];
 }
 
 @end
