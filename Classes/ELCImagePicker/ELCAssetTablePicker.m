@@ -53,9 +53,12 @@
     }];
     [self.tableView reloadData];
     NSInteger row = ceil(assetGroup.numberOfAssets / 4.0)-1;
-    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]
-                          atScrollPosition:UITableViewScrollPositionBottom
-                                  animated:NO];
+    
+    if (row > 0) {
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]
+                              atScrollPosition:UITableViewScrollPositionBottom
+                                      animated:NO];
+    }
     
     // For some reason it only scrolls about 80% through the final image... This scrolls
     // the table view all the way to the bottom. 50 is just a number thats bigger than the
