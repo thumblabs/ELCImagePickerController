@@ -59,9 +59,13 @@
         void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 
-                UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                UIAlertView *alert;
+                if (error.code == ALAssetsLibraryAccessGloballyDeniedError || error.code == ALAssetsLibraryAccessUserDeniedError) {
+                    alert = [[UIAlertView alloc] initWithTitle:@"Permissions Error" message:@"MirrorCase does not have access to your Photos. This option can be set under Settings -> Privacy -> Photos." delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                } else {
+                    alert = [[UIAlertView alloc] initWithTitle:@"Permissions Error" message:@"MirrorCase does not have the necessary permissions to your Photos." delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                }
                 [alert show];
-                [alert release];
                 
                 NSLog(@"A problem occured %@", [error description]);
                 
