@@ -9,7 +9,7 @@
 #import "ELCAssetCell.h"
 #import "ELCAsset.h"
 #import "ELCAlbumPickerController.h"
-
+#import "ELCImagePickerController.h"
 
 @implementation ELCAssetTablePicker
 {
@@ -114,6 +114,16 @@
     [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset elcAssets:self.elcAssets];
     
     backgroundInterrupted = YES;
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        ELCImagePickerController *nc = (ELCImagePickerController *)[self navigationController];
+        UIViewController * delegate = (UIViewController *)[nc delegate];
+        if ([delegate respondsToSelector:@selector(popoverViewController)]) {
+            UIPopoverController *pc = (UIPopoverController *)[delegate performSelector:@selector(popoverViewController)];
+            [pc dismissPopoverAnimated:YES];
+            return;
+        }
+    }
     
     [self.navigationController dismissModalViewControllerAnimated:YES];
 }
