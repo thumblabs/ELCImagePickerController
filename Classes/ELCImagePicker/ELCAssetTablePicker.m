@@ -111,6 +111,7 @@
         selectedAsset = (ALAsset *)sender;
     }
     
+    
     [(ELCAlbumPickerController*)self.parent selectedAsset:selectedAsset elcAssets:self.elcAssets];
     
     backgroundInterrupted = YES;
@@ -124,8 +125,6 @@
             return;
         }
     }
-    
-    [self.navigationController dismissModalViewControllerAnimated:YES];
 }
 
 #pragma mark UITableViewDataSource Delegate Methods
